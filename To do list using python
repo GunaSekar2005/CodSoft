@@ -1,0 +1,61 @@
+import os
+
+def show_menu():
+    print("1. View tasks")
+    print("2. Add a task")
+    print("3. Mark task as done")
+    print("4. Exit")
+
+def view_tasks():
+    with open("tasks.txt", "r") as file:
+        tasks = file.readlines()
+        if tasks:
+            for i, task in enumerate(tasks, start=1):
+                print(f"{i}. {task.strip()}")
+        else:
+            print("No tasks yet.")
+
+def add_task():
+    task = input("Enter a new task: ")
+    with open("tasks.txt", "a") as file:
+        file.write(task + "\n")
+    print("Task added!")
+
+def mark_done():
+    view_tasks()
+    task_number = int(input("Enter the task number to mark as done: "))
+    
+    with open("tasks.txt", "r") as file:
+        tasks = file.readlines()
+    
+    if 1 <= task_number <= len(tasks):
+        tasks[task_number - 1] = f"{tasks[task_number - 1].strip()} (Done)\n"
+        
+        with open("tasks.txt", "w") as file:
+            file.writelines(tasks)
+        
+        print("Task marked as done!")
+    else:
+        print("Invalid task number.")
+
+def main():
+    while True:
+        show_menu()
+        choice = input("Enter your choice (1-4): ")
+
+        if choice == "1":
+            view_tasks()
+        elif choice == "2":
+            add_task()
+        elif choice == "3":
+            mark_done()
+        elif choice == "4":
+            print("Exiting program. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 4.")
+
+if _name_ == "_main_":
+    if not os.path.exists("tasks.txt"):
+        open("tasks.txt", "w").close()  # create the file if it doesn't exist
+    main()
