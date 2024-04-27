@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define the structure for a print job
+typedef struct {
+    int length;
+    char description[100]; // Assuming a maximum description length of 100 characters
+} PrintJob;
+
+// Define the structure for the printer queue
+typedef struct {
+    PrintJob **heap;
+    int size;
+    int capacity;
+} PrinterQueue;
+
+// Function to initialize the printer queue
+PrinterQueue* createPrinterQueue(int capacity) {
+    PrinterQueue* queue = (PrinterQueue*)malloc(sizeof(PrinterQueue));
+    queue->heap = (PrintJob**)malloc(capacity * sizeof(PrintJob*));
+    queue->size = 0;
+    queue->capacity = capacity;
+    return queue;
+}
+
+// Function to swap two print jobs
+void swap(PrintJob** a, PrintJob** b) {
+    PrintJob* temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// Function to enqueue a print job into the printer queue
+void enqueue(PrinterQueue* queue, PrintJob* job) {
+    if (queue->size == queue->capacity) {
+        printf("Printer queue is full!\n");
+        return;
+    }
+
+    // Add the job to the end of the heap
+    queue->heap[queue->size] = job;
+    int index = queue->size;
+    queue->size++;
+
+    // Adjust the heap to maintain the min-heap property
+    while (index > 0 && queue->heap[index]->length < queue->heap[(index - 1) / 2]->length) {
+        swap(&queue->heap[index], &queue->heap[(index - 1) / 2]);
+        index = (index - 1) / 2;
+    }
+}
+
+// Function to dequeue the next print job from the printer queue
+PrintJob* dequeue(PrinterQueue* queue) {
+    if (queue->size == 0) {
+        printf("Printer queue is empty!\n");
+        return NULL;
+    }
+
+    // Remove the root of the heap (the shortest print job)
+    PrintJob* job = queue->heap[0];
+    queue->heap[0] = queue->heap[queue->size - 1];
+    queue->size--;
+
+    // Adjust the heap to maintain the min-heap property
+    int index = 0;
+    while (2 * index + 1 < queue->size) {
+        int leftChild = 2 * index + 1;
+        int rightChild = 2 * index + 2;
+        int smallerChild = leftChild;
+
+        if (rightChild < queue->size && queue->heap[rightChild]->length < queue->heap[leftChild]->length) {
+            smallerChild = rightChild;
+        }
+
+        if (queue->heap[index]->length <= queue->heap[smallerChild]->length) {
+            break;
+        }
+
+        swap(&queue->heap[index], &queue->heap[smallerChild]);
+        index = smallerChild;
+    }
+
+    return job;
+}
+
+// Function to print a print job
+void printJob(PrintJob* job) {
+    printf("Printing: %s\n", job->description);
+}
+
+int main() {
+    // Create a printer queue with a capacity of 10
+    PrinterQueue* queue = createPrinterQueue(10);
+
+    // Submit print jobs
+    enqueue(queue, &(PrintJob){5, "Document A"});
+    enqueue(queue, &(PrintJob){3, "Document B"});
+    enqueue(queue, &(PrintJob){7, "Document C"});
+    enqueue(queue, &(PrintJob){2, "Document D"});
+
+    // Process print jobs
+    while (queue->size > 0) {
+        PrintJob* job = dequeue(queue);
+        printJob(job);
+    }
+
+    // Free the memory allocated for the printer queue
+    free(queue->heap);
+    free(queue);
+
+    return 0;
+}
